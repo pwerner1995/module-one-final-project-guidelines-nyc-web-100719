@@ -1,3 +1,4 @@
+
 class User < ActiveRecord::Base
     has_many :reviews
     has_many :albums, through: :reviews
@@ -9,18 +10,27 @@ class User < ActiveRecord::Base
         return "#{month}-#{day}, #{year}"
     end
 
-    def write_review(album_id, review_content)
-        date = date_format
-        Review.create(date, album_id, self, review_content)
+    def write_review(album_id:, review_content:, rating: 0.0)
+        if rating < 0
+            Review.create(album_id: album_id, user_id: self.id, review_content: review_content, rating: 0.0)
+        elsif rating > 10
+            Review.create(album_id: album_id, user_id: self.id, review_content: review_content, rating: 10.0)
+        else
+            Review.create(album_id: album_id, user_id: self.id, review_content: review_content, rating: rating)
+        end
+    end
+
+    def show_reviews
+        self.reviews
     end
 
 end
 
 #minimum functionaltiy 
-# - user can write a review for specified album
+# - user can write a review for specified album X
 # - show reviews for specifed artist or album
-# - show reviews for specified user
+# - show reviews for specified user X 
 # - show albums for speicfied release date
-# - most popular albums = most reviewed (num of reviews per album and per artist)
-# - highest/lowest rated
+# - most popular albums = most reviewed (num of reviews per album and per artist) X
+# - highest X /lowest rated
 # - highest/lowest rated artists
