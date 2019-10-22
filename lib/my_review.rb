@@ -4,7 +4,7 @@ class MyReview
     def run  
         username = prompt_user
         menubar = menu
-        choice(menubar)
+        choice(menubar, username)
     end
 
     def prompt
@@ -47,6 +47,7 @@ class MyReview
         else 
             puts "Wrong password, try again later :("
         end
+        username
     end
 
     def menu
@@ -59,9 +60,9 @@ class MyReview
 
     end
 
-    def choice(menubar)
+    def choice(menubar, username)
         if menubar == "Write a review"
-            choice_write_review
+            choice_write_review(username)
         elsif menubar == "View your past reviews"
             choice_view_reviews
         elsif menubar == "View an album"
@@ -70,6 +71,32 @@ class MyReview
             choice_artist_info
         else
             puts "Goodbye"
+        end
+    end
+
+    def choice_write_review(username)
+        user = User.find_by(username: username)
+        artist = prompt.ask('Enter artist name:')
+        title = prompt.ask('Enter the album title to review:')
+        release_year = prompt.ask('Enter the album release year')
+        review_content = prompt.ask('Enter your review:')
+        rating = prompt.ask('Enter your rating:').to_f
+        album_titles = Album.all.select do |album|
+            album.title == title
+        end
+        artists = Artist.all.select do |artist|
+            artist.name == artist
+        end
+        if album_titles.empty? && artists.empty?
+            new_artist = Artist.create(name: artist)
+            new_album = Album.create(artist_id: new_artist.id, title: title, release_year: release_year)
+            review = user.write_review(album_id: new_album.id, review_content: review_content, rating: rating)
+            pp review
+        else
+            album_id = Album.find_by(title: title).id
+            user = User.find_by(username: username)
+            review = user.write_review(album_id: album_id, review_content: review_content, rating: rating)
+            pp review
         end
     end
 

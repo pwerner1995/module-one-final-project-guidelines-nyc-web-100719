@@ -12,13 +12,15 @@ class User < ActiveRecord::Base
 
     def write_review(album_id:, review_content:, rating: 0.0)
         if rating < 0
-            Review.create(album_id: album_id, user_id: self.id, review_content: review_content, rating: 0.0)
+            review = Review.create(album_id: album_id, user_id: self.id, review_content: review_content, rating: 0.0)
+            return review
         elsif rating > 10
-            Review.create(album_id: album_id, user_id: self.id, review_content: review_content, rating: 10.0)
+            review = Review.create(album_id: album_id, user_id: self.id, review_content: review_content, rating: 10.0)
+            return review
         else
-            Review.create(album_id: album_id, user_id: self.id, review_content: review_content, rating: rating)
+            review = Review.create(album_id: album_id, user_id: self.id, review_content: review_content, rating: rating)
+            return review
         end
-        self
     end
 
     def show_reviews
