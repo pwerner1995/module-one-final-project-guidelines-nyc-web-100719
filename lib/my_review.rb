@@ -13,10 +13,10 @@ class MyReview
     def prompt_user
         puts "Welcome to Bete's by Flatiron!!"
         prompt.ask('Enter your username:')
-        gets.chomp!
+
     end
     def prompt_password
         prompt.mask('Enter password:')
-        gets.chomp!
+        # gets.chomp!
     end
 end
