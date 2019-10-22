@@ -17,6 +17,7 @@ class Album < ActiveRecord::Base
     def album_reviews
         self.reviews
     end
+    
 
     def self.find_by_release_year(year:)
         self.all.select do |album|
@@ -30,9 +31,7 @@ class Album < ActiveRecord::Base
         end
     end
 
-    
-
-    def self.highest_rated
+    def self.highest_rated_album
         max_review = Album.all.max_by do |album|
             album.average_rating
         end
@@ -40,7 +39,7 @@ class Album < ActiveRecord::Base
         return "#{album.title} - #{max_review.average_rating}"
     end
 
-    def self.lowest_rated
+    def self.lowest_rated_album
         min_review = Album.all.min_by do |album|
             album.average_rating
         end
@@ -51,9 +50,9 @@ end
 
 #minimum functionaltiy 
 # - user can write a review for specified album X
-# - show reviews for specifed artist or album X(album)
-# - show reviews for specified user
+# - show reviews for specifed X artist or album X(album)
+# - show reviews for specified user X
 # - show albums for speicfied release date X
 # - most popular albums = most reviewed (num of reviews per album and per artist) X
 # - highest/lowest ratedX
-# - highest/lowest rated artists
+# - highest/lowest rated artists X

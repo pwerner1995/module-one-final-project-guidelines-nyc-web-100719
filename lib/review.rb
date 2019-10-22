@@ -1,6 +1,19 @@
 class Review < ActiveRecord::Base
     belongs_to :user
     belongs_to :album
+
+    def self.find_review_by_artist(artist_name)
+
+        artist = Artist.find_by(name: artist_name)
+        albums = Album.all.select do |album|
+            album.artist_id == artist.id
+        end
+        albums.map do |album|
+            album.reviews
+        end
+    end
+
+
 end
 
 

@@ -18,6 +18,7 @@ class User < ActiveRecord::Base
         else
             Review.create(album_id: album_id, user_id: self.id, review_content: review_content, rating: rating)
         end
+        self
     end
 
     def show_reviews
