@@ -2,16 +2,6 @@ class Album < ActiveRecord::Base
     has_many :reviews
     has_many :users, through: :reviews
 
-    # def self.album_reviews
-    #     self.reviews
-    # end
-
-    def self.most_popular
-        Album.all.max_by do |album|
-            album.reviews.count
-        end
-    end
-
     def average_rating
         arr = self.reviews.map do |review|
             review.rating
@@ -22,6 +12,24 @@ class Album < ActiveRecord::Base
         end
         return total/arr.count
     end
+
+    def album_reviews
+        self.reviews
+    end
+
+    def self.find_by_release_year(year:)
+        self.all.select do |album|
+            album.release_year==year
+        end
+    end
+
+    def self.most_popular
+        Album.all.max_by do |album|
+            album.reviews.count
+        end
+    end
+
+    
 
     def self.highest_rated
         max_review = Album.all.max_by do |album|
@@ -41,10 +49,10 @@ class Album < ActiveRecord::Base
 end
 
 #minimum functionaltiy 
-# - user can write a review for specified album
-# - show reviews for specifed artist or album
+# - user can write a review for specified album X
+# - show reviews for specifed artist or album X(album)
 # - show reviews for specified user
-# - show albums for speicfied release date
-# - most popular albums = most reviewed (num of reviews per album and per artist)
-# - highest/lowest rated
+# - show albums for speicfied release date X
+# - most popular albums = most reviewed (num of reviews per album and per artist) X
+# - highest/lowest ratedX
 # - highest/lowest rated artists
