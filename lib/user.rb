@@ -28,9 +28,9 @@ end
 
 #minimum functionaltiy 
 # - user can write a review for specified album X
-# - show reviews for specifed artist or album
+# - show reviews for specifed artist or album(X album)
 # - show reviews for specified user X 
-# - show albums for speicfied release date
+# - show albums for speicfied release date X
 # - most popular albums = most reviewed (num of reviews per album and per artist) X
-# - highest X /lowest rated
+# - highest X /lowest rated X
 # - highest/lowest rated artists
