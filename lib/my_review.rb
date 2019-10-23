@@ -85,7 +85,7 @@ class MyReview
         title = prompt.ask('Enter the album title to review:'.light_red).upcase
         release_year = prompt.ask('Enter the album release year:'.light_red)
         review_content = prompt.ask('Enter your review:'.light_red)
-        rating = prompt.ask('Enter your rating:'.light_red).to_f
+        rating = prompt.ask('Enter your rating (out of 10):'.light_red).to_f
         album_titles = Album.all.select do |album|
             album.title == title
         end
@@ -96,12 +96,19 @@ class MyReview
             new_artist = Artist.create(name: artist)
             new_album = Album.create(artist_id: new_artist.id, title: title, release_year: release_year)
             review = user.write_review(album_id: new_album.id, review_content: review_content, rating: rating)
-            pp review
+            puts "Album: #{new_album.title}".light_red
+            puts "Artist: #{new_artist.name}".light_red
+            puts "Review: #{review.review_content}".light_red
+            puts "Rating: #{review.rating.to_s}".light_red
         else
-            album_id = Album.find_by(title: title).id
+            album = Album.find_by(title: title)
+            album_id=album.id
             user = User.find_by(username: username)
             review = user.write_review(album_id: album_id, review_content: review_content, rating: rating)
-            pp review
+            puts "Album: #{album.title}".light_red
+            puts "Artist: #{album.artist.name}".light_red
+            puts "Review: #{review.review_content}".light_red
+            puts "Rating: #{review.rating.to_s}".light_red
         end
         new_prompt = prompt.yes?('Would you like to do something else'.light_red)
         if new_prompt
@@ -113,7 +120,15 @@ class MyReview
 
     def choice_view_reviews(username)
         user = User.find_by(username: username)
-        pp user.reviews
+        user.reviews.each do |review|
+            album = Album.find_by(id: review.album_id)
+            artist = Artist.find_by(id: album.artist_id)
+            puts "Album: #{album.title}".light_red
+            puts "Artist: #{artist.name}".light_red
+            puts "Review: #{review.review_content}".light_red
+            puts "Rating: #{review.rating}".light_red
+            puts "*" * 26
+        end
         new_prompt = prompt.yes?('Would you like to do something else'.light_red)
         if new_prompt
             menu(username)
@@ -157,7 +172,7 @@ class MyReview
         selected_artist = Artist.find_by(name: artist)
         puts "Artist name: #{selected_artist.name}".light_red
         puts "Total average rating: #{selected_artist.average_rating}".light_red
-        puts '*'.light_red * 26
+        puts '*' * 26
         selected_artist.albums.each do |album|
             print_album_info(album)
         end
