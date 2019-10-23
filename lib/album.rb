@@ -11,7 +11,7 @@ class Album < ActiveRecord::Base
         arr.each do |rating|
             total+=rating
         end
-        return total/arr.count
+        return (total/arr.count).round(2)
     end
 
     def album_reviews
