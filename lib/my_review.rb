@@ -78,7 +78,7 @@ class MyReview
         user = User.find_by(username: username)
         artist = prompt.ask('Enter artist name:')
         title = prompt.ask('Enter the album title to review:')
-        release_year = prompt.ask('Enter the album release year')
+        release_year = prompt.ask('Enter the album release year:')
         review_content = prompt.ask('Enter your review:')
         rating = prompt.ask('Enter your rating:').to_f
         album_titles = Album.all.select do |album|
