@@ -125,7 +125,7 @@ class MyReview
             display_new_review(artist, album, review)
         else #existing album title existing artist name
             album = Album.find_by(title: title_to_review)
-            artist = Artist.find_by(name: artist_to_review)
+            artist = Artist.find_by(id: album.artist_id)
             if album.artist_id != artist.id
                 album = Album.create(artist_id: artist.id, title: title_to_review, release_year: release_year)
             end
