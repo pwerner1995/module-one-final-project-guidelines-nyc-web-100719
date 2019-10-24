@@ -1,5 +1,6 @@
 require 'tty-prompt'
 require 'pry'
+
 class MyReview 
     def run  
         username = prompt_user
@@ -59,8 +60,9 @@ class MyReview
         menubar = prompt.select("Select your album review option:".light_red) do |menu|
             menu.choice 'Write a review'.light_red
             menu.choice 'View your past reviews'.light_red
+            menu.choice 'Delete a past review'.light_red
             menu.choice 'View an album'.light_red 
-            menu.choice 'View an artist'.light_red 
+            menu.choice 'View an artist'.light_red
         end
         choice(menubar, username)
     end
@@ -70,6 +72,8 @@ class MyReview
             choice_write_review(username)
         elsif menubar == "View your past reviews".light_red
             choice_view_reviews(username)
+        elsif menubar == "Delete a past review".light_red
+            choice_delete_review(username)
         elsif menubar == "View an album".light_red
             choice_album_info(username)
         elsif menubar == "View an artist".light_red
@@ -132,14 +136,48 @@ class MyReview
         new_prompt = prompt.yes?('Would you like to do something else'.light_red)
         if new_prompt
             menu(username)
-            binding.pry
+        else
+            puts "Goodbye!".light_red
+        end
+    end
+
+    def display_reviews(album, artist, review)
+        puts "Album: #{album.title}".light_red
+        puts "Artist: #{artist.name}".light_red
+        puts "Review: #{review.review_content}".light_red
+        puts "Rating: #{review.rating}".light_red
+        puts "*" * 26
+    end
+
+    def choice_delete_review(username)
+        user = User.find_by(username: username)
+        my_reviews = user.reviews.each do |review|
+            album = Album.find_by(id: review.album_id)
+            artist = Artist.find_by(id: album.artist_id)
+            display_reviews(album, artist, review)
+        end
+        album_titles = my_reviews.map do |review| 
+            album = review.album
+            album.title
+        end
+        album_choice = prompt.select('Select a past review:'.light_red, album_titles)
+        album = Album.find_by(title: album_choice)
+        review = Review.find_by(album_id: album.id)
+        review.destroy
+        puts "This review has been removed"
+        new_prompt = prompt.yes?('Would you like to do something else'.light_red)
+        if new_prompt
+            menu(username)
         else
             puts "Goodbye!".light_red
         end
     end
 
     def choice_album_info(username)
-        album = prompt.ask('What album would you like to view?'.light_red).upcase
+        album_titles = Album.all.map do |album| 
+            album.title
+        end
+        album = prompt.select('What album would you like to view?'.light_red, album_titles)
         selected_album = Album.find_by(title: album)
         if selected_album
             artist = Artist.find_by(id: selected_album.artist_id)
@@ -168,7 +206,10 @@ class MyReview
     end
 
     def choice_artist_info(username)
-        artist = prompt.ask('What artist would you like to view?'.light_red).upcase
+        artist_names = Artist.all.map do |artist| 
+            artist.name
+        end
+        artist = prompt.select('What artist would you like to view?'.light_red, artist_names)
         selected_artist = Artist.find_by(name: artist)
         puts "Artist name: #{selected_artist.name}".light_red
         puts "Total average rating: #{selected_artist.average_rating}".light_red

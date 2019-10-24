@@ -11,7 +11,12 @@ class Album < ActiveRecord::Base
         arr.each do |rating|
             total+=rating
         end
-        return (total/arr.count).round(2)
+        if arr.empty?
+            avg = "No reviews"
+        else
+            avg = (total/arr.count).round(2)
+        end
+        return avg
     end
 
     def album_reviews

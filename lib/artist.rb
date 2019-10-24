@@ -15,10 +15,19 @@ class Artist < ActiveRecord::Base
 
     def average_rating
         total = 0
+        count = all_albums.count
         all_albums.each do |album|
-            total += album.average_rating
+            if album.average_rating == "No reviews"
+                count -= 1
+            else
+                total += album.average_rating
+            end
         end
-        return total/all_albums.count
+        if count == 0
+            return "No reviews"
+        else 
+            return total/count
+        end
     end
 
     def self.highest_rated_artist
