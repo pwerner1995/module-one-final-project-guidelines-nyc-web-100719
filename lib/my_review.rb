@@ -44,7 +44,6 @@ class MyReview
                 puts "Goodbye!".light_red
             end
         else
-            puts "Welcome back!".light_red
             prompt_password(username)
         end
     end
