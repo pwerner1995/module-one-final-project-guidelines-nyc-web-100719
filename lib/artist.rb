@@ -26,7 +26,7 @@ class Artist < ActiveRecord::Base
         if count == 0
             return "No reviews"
         else 
-            return total/count
+            return (total/count).round(2)
         end
     end
 

@@ -22,6 +22,18 @@ class Album < ActiveRecord::Base
     def album_reviews
         self.reviews
     end
+
+    def user_rating(username)
+        user = User.find_by(username: username)
+        new_arr = album_reviews.select do |review|
+            review.user_id == user.id
+        end
+        if !new_arr.empty?
+            new_arr.first.rating
+        else
+            return "-"
+        end
+    end
     
 
     def self.find_by_release_year(year:)

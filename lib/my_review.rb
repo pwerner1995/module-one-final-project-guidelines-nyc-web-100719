@@ -1,7 +1,9 @@
 require 'tty-prompt'
 require 'pry'
 
+
 class MyReview 
+
     def run  
         username = prompt_user
         if username
@@ -16,11 +18,14 @@ class MyReview
     end
 
     def get_user_info
+        puts ""
         username = prompt.ask('Enter your username:'.light_red)
         password = prompt.mask('Enter password:'.light_red)
         first_name = prompt.ask('Enter your first name'.light_red)
         last_name = prompt.ask('Enter your last name'.light_red)
         User.create(username: username, password: password, first_name: first_name, last_name: last_name)
+        puts ""
+        puts "Welcome, #{first_name}!"
     end
 
     def prompt_user
@@ -46,15 +51,18 @@ class MyReview
 
     def prompt_password(username)
         password = prompt.mask('Enter password:'.light_red)
-        user = User.find_by(username: username)
-        if user.password == password
-            puts "Welcome!".light_red
+        puts ""
+        if find(username).password == password
+            puts "Welcome back, #{find(username).first_name}!".light_red
+            puts ""
             username
         else 
             puts "Wrong password, try again later :(".light_red
+            puts ""
             prompt_password(username)
         end
     end
+
 
     def menu(username)
         menubar = prompt.select("Select your album review option:".light_red) do |menu|
@@ -64,6 +72,7 @@ class MyReview
             menu.choice 'View an album'.light_red 
             menu.choice 'View an artist'.light_red
         end
+        puts ""
         choice(menubar, username)
     end
 
@@ -84,77 +93,66 @@ class MyReview
     end
 
     def choice_write_review(username)
-        user = User.find_by(username: username)
-        artist = prompt.ask('Enter artist name:'.light_red).upcase
-        title = prompt.ask('Enter the album title to review:'.light_red).upcase
-        release_year = prompt.ask('Enter the album release year:'.light_red)
+        artist_to_review = prompt.ask('Enter artist name (press ENTER to view list of previously review artists):'.light_red)
+        if artist_to_review == nil
+            artist_names = Artist.all.map do |artist| 
+                artist.name
+            end
+            artist_to_review = prompt.select('What artist would you like to view?'.light_red, artist_names)
+        end
+        artist_to_review.upcase.strip
+        title_to_review = prompt.ask('Enter the album title to review:'.light_red).upcase.strip
+        release_year = prompt.ask('Enter the album release year:'.light_red).to_i
+        if release_year > 2100 || release_year < 1800
+            release_year = 1995
+        end
         review_content = prompt.ask('Enter your review:'.light_red)
         rating = prompt.ask('Enter your rating (out of 10):'.light_red).to_f
-        album_titles = Album.all.select do |album|
-            album.title == title
+        album_titles = Album.all.map do |album|
+            album.title
         end
-        artists = Artist.all.select do |artist|
-            artist.name == artist
+        artists = Artist.all.map do |artist|
+            artist.name
         end
-        if album_titles.empty? && artists.empty?
-            new_artist = Artist.create(name: artist)
-            new_album = Album.create(artist_id: new_artist.id, title: title, release_year: release_year)
-            review = user.write_review(album_id: new_album.id, review_content: review_content, rating: rating)
-            puts "Album: #{new_album.title}".light_red
-            puts "Artist: #{new_artist.name}".light_red
-            puts "Review: #{review.review_content}".light_red
-            puts "Rating: #{review.rating.to_s}".light_red
-        else
-            album = Album.find_by(title: title)
-            album_id=album.id
-            user = User.find_by(username: username)
-            review = user.write_review(album_id: album_id, review_content: review_content, rating: rating)
-            puts "Album: #{album.title}".light_red
-            puts "Artist: #{album.artist.name}".light_red
-            puts "Review: #{review.review_content}".light_red
-            puts "Rating: #{review.rating.to_s}".light_red
+        if !album_titles.include?(title_to_review) && !artists.include?(artist_to_review) #new album title and new artist name
+            artist = Artist.create(name: artist_to_review)
+            album = Album.create(artist_id: artist.id, title: title_to_review, release_year: release_year)
+            review = find(username).write_review(album_id: album.id, review_content: review_content, rating: rating)
+            display_new_review(artist, album, review)
+        elsif !album_titles.include?(title_to_review) #new album title and existing artist name
+            artist = Artist.find_by(name: artist_to_review)
+            album = Album.create(artist_id: artist.id, title: title_to_review, release_year: release_year)
+            review = find(username).write_review(album_id: album.id, review_content: review_content, rating: rating)
+            display_new_review(artist, album, review)
+        else #existing album title existing artist name
+            album = Album.find_by(title: title_to_review)
+            artist = Artist.find_by(name: artist_to_review)
+            if album.artist_id != artist.id
+                album = Album.create(artist_id: artist.id, title: title_to_review, release_year: release_year)
+            end
+            album_id = album.id
+            review = find(username).write_review(album_id: album_id, review_content: review_content, rating: rating)
+            display_new_review(artist, album, review)
         end
-        new_prompt = prompt.yes?('Would you like to do something else'.light_red)
-        if new_prompt
-            menu(username)
-        else
-            puts "Goodbye!".light_red
-        end
+        new_prompt(username)
     end
+
 
     def choice_view_reviews(username)
-        user = User.find_by(username: username)
-        user.reviews.each do |review|
+        find(username).reviews.each do |review|
             album = Album.find_by(id: review.album_id)
             artist = Artist.find_by(id: album.artist_id)
-            puts "Album: #{album.title}".light_red
-            puts "Artist: #{artist.name}".light_red
-            puts "Review: #{review.review_content}".light_red
-            puts "Rating: #{review.rating}".light_red
-            puts "*" * 26
+            display_reviews(album, artist, review, username)
         end
-        new_prompt = prompt.yes?('Would you like to do something else'.light_red)
-        if new_prompt
-            menu(username)
-        else
-            puts "Goodbye!".light_red
-        end
+        new_prompt(username)
     end
 
-    def display_reviews(album, artist, review)
-        puts "Album: #{album.title}".light_red
-        puts "Artist: #{artist.name}".light_red
-        puts "Review: #{review.review_content}".light_red
-        puts "Rating: #{review.rating}".light_red
-        puts "*" * 26
-    end
 
     def choice_delete_review(username)
-        user = User.find_by(username: username)
-        my_reviews = user.reviews.each do |review|
+        my_reviews = find(username).reviews.each do |review|
             album = Album.find_by(id: review.album_id)
             artist = Artist.find_by(id: album.artist_id)
-            display_reviews(album, artist, review)
+            display_reviews(album, artist, review, username)
         end
         album_titles = my_reviews.map do |review| 
             album = review.album
@@ -165,12 +163,7 @@ class MyReview
         review = Review.find_by(album_id: album.id)
         review.destroy
         puts "This review has been removed"
-        new_prompt = prompt.yes?('Would you like to do something else'.light_red)
-        if new_prompt
-            menu(username)
-        else
-            puts "Goodbye!".light_red
-        end
+        new_prompt(username)
     end
 
     def choice_album_info(username)
@@ -181,26 +174,18 @@ class MyReview
         selected_album = Album.find_by(title: album)
         if selected_album
             artist = Artist.find_by(id: selected_album.artist_id)
+            puts ""
             puts "Artist: #{artist.name}".light_red
-            print_album_info(selected_album)
-            new_prompt = prompt.yes?('Would you like to do something else'.light_red)
-            if new_prompt
-                menu(username)
-            else
-                puts "Goodbye!".light_red
-            end
+            print_album_info(selected_album, username)
+            new_prompt(username)
         else
             puts "This album does not exist in the database".light_red
+            puts ""
             yesno = prompt.yes?('Would you like to try again'.light_red)
             if yesno
                 choice_album_info(username)
             else
-                new_prompt = prompt.yes?('Would you like to do something else'.light_red)
-                    if new_prompt
-                        menu(username)
-                    else
-                        puts "Goodbye!".light_red
-                    end
+                new_prompt(username)
             end
         end
     end
@@ -211,12 +196,29 @@ class MyReview
         end
         artist = prompt.select('What artist would you like to view?'.light_red, artist_names)
         selected_artist = Artist.find_by(name: artist)
+        puts ""
         puts "Artist name: #{selected_artist.name}".light_red
         puts "Total average rating: #{selected_artist.average_rating}".light_red
-        puts '*' * 26
+        puts ""
+        puts "DISCOGRAPHY".light_red
+        puts ""
         selected_artist.albums.each do |album|
-            print_album_info(album)
+            print_album_info(album, username)
+            puts '*' * 26
         end
+        new_prompt(username)
+    end
+
+    #helpers
+
+    def print_album_info(album, username)
+        puts "Title: #{album.title}".light_red
+        puts "Average rating: #{album.average_rating}".light_red
+        puts "Your rating: #{album.user_rating(username)}".light_red
+    end
+
+    def new_prompt(username)
+        puts ""
         new_prompt = prompt.yes?('Would you like to do something else'.light_red)
         if new_prompt
             menu(username)
@@ -225,11 +227,29 @@ class MyReview
         end
     end
 
-    private
+    def display_new_review(artist, album, review)
+        puts ""
+        puts "Artist: #{artist.name}".light_red
+        puts "Album: #{album.title}".light_red
+        puts "Release Year: #{album.release_year}".light_red
+        puts "Review: #{review.review_content}".light_red
+        puts "Rating: #{review.rating.to_s}".light_red
+        puts ""
+    end
 
-    def print_album_info(album)
-        puts "Title: #{album.title}".light_red
-        puts "Average rating: #{album.average_rating}".light_red
+    def display_reviews(album, artist, review, username)
+        puts "Album: #{album.title}".light_red
+        puts "Artist: #{artist.name}".light_red
+        puts "Release Year: #{album.release_year}".light_red
+        puts "Review: #{review.review_content}".light_red
+        puts "Average Rating: #{album.average_rating}".light_red
+        puts "Your rating: #{album.user_rating(username)}".light_red
+        puts "*" * 26
+        puts ""
+    end
+
+    def find(username)
+        User.find_by(username: username)
     end
 
 
