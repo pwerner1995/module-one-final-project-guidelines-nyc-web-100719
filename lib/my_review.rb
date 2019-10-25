@@ -23,9 +23,10 @@ class MyReview
         password = prompt.mask('Enter password:'.light_red)
         first_name = prompt.ask('Enter your first name'.light_red)
         last_name = prompt.ask('Enter your last name'.light_red)
-        User.create(username: username, password: password, first_name: first_name, last_name: last_name)
+        user = User.create(username: username, password: password, first_name: first_name, last_name: last_name)
         puts ""
         puts "Welcome, #{first_name}!"
+        return user
     end
 
     def prompt_user
@@ -64,15 +65,26 @@ class MyReview
 
 
     def menu(username)
-        menubar = prompt.select("Select your album review option:".light_red) do |menu|
-            menu.choice 'Write a review'.light_red
-            menu.choice 'View your past reviews'.light_red
-            menu.choice 'Delete a past review'.light_red
-            menu.choice 'View an album'.light_red 
-            menu.choice 'View an artist'.light_red
+        if find(username).reviews.empty?
+            menubar = prompt.select("Select your album review option:".light_red) do |menu|
+                menu.choice 'Write a review'.light_red
+                menu.choice 'View your past reviews'.light_red #have to account for null response in albums
+                menu.choice 'View an album'.light_red 
+                menu.choice 'View an artist'.light_red
+            end
+            puts ""
+            choice(menubar, username)
+        else
+            menubar = prompt.select("Select your album review option:".light_red) do |menu|
+                menu.choice 'Write a review'.light_red
+                menu.choice 'View your past reviews'.light_red #have to account for null response in albums
+                menu.choice 'Delete a past review'.light_red #need to add check for new user without any past reviews X
+                menu.choice 'View an album'.light_red 
+                menu.choice 'View an artist'.light_red
+            end
+            puts ""
+            choice(menubar, username)
         end
-        puts ""
-        choice(menubar, username)
     end
 
     def choice(menubar, username)
@@ -100,7 +112,17 @@ class MyReview
             artist_to_review = prompt.select('What artist would you like to view?'.light_red, artist_names)
         end
         artist_to_review.upcase.strip
-        title_to_review = prompt.ask('Enter the album title to review:'.light_red).upcase.strip
+        title_to_review = prompt.ask('Enter the album title to review:'.light_red)
+        if title_to_review == nil
+            titles = Album.all.select do |album| 
+                album.artist_id == Artist.find_by(name: artist_to_review).id
+            end
+            titles= titles.map do |album|
+                album.title
+            end
+            title_to_review = prompt.select('Which existing album would you like to view?'.light_red, titles)
+        end
+        title_to_review.upcase.strip
         release_year = prompt.ask('Enter the album release year:'.light_red).to_i
         if release_year > 2100 || release_year < 1800
             release_year = 1995
@@ -138,10 +160,13 @@ class MyReview
 
 
     def choice_view_reviews(username)
-        find(username).reviews.each do |review|
+        past_reviews=find(username).reviews.each do |review|
             album = Album.find_by(id: review.album_id)
             artist = Artist.find_by(id: album.artist_id)
             display_reviews(album, artist, review, username)
+        end
+        if past_reviews.empty?
+            puts "You haven't reviewed any albums yet! Go review something...".light_red
         end
         new_prompt(username)
     end
