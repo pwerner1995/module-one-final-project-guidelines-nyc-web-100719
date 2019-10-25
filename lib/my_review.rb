@@ -113,7 +113,7 @@ class MyReview
             end
             artist_to_review = prompt.select('What artist would you like to view?'.light_red, artist_names)
         end
-        artist_to_review.upcase.strip
+        artist_to_review=artist_to_review.upcase.strip
         title_to_review = prompt.ask('Enter the album title to review:'.light_red)
         if title_to_review == nil
             titles = Album.all.select do |album| 
@@ -124,7 +124,8 @@ class MyReview
             end
             title_to_review = prompt.select('Which existing album would you like to view?'.light_red, titles)
         end
-        title_to_review.upcase.strip
+        title_to_review= title_to_review.upcase.strip
+        binding.pry
         release_year = prompt.ask('Enter the album release year:'.light_red).to_i
         if release_year > 2100 || release_year < 1800
             release_year = 1995
