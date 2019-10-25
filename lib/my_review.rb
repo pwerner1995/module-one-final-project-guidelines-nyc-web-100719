@@ -71,6 +71,7 @@ class MyReview
                 menu.choice 'View your past reviews'.light_red #have to account for null response in albums
                 menu.choice 'View an album'.light_red 
                 menu.choice 'View an artist'.light_red
+                menu.choice 'Exit'.light_red
             end
             puts ""
             choice(menubar, username)
@@ -81,6 +82,7 @@ class MyReview
                 menu.choice 'Delete a past review'.light_red #need to add check for new user without any past reviews X
                 menu.choice 'View an album'.light_red 
                 menu.choice 'View an artist'.light_red
+                menu.choice 'Bete it'.light_red
             end
             puts ""
             choice(menubar, username)
@@ -98,8 +100,8 @@ class MyReview
             choice_album_info(username)
         elsif menubar == "View an artist".light_red
             choice_artist_info(username)
-        else
-            puts "Goodbye".light_red
+        elsif menubar == "Bete it".light_red
+            puts "Goodbye!".light_red
         end
     end
 
